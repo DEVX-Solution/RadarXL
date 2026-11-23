@@ -310,7 +310,7 @@ async function renderTeamView() {
           <div style="max-width: 680px; margin: 20px auto;">
             <div class="invite-code-card" style="margin-bottom: 24px;">
               <div class="invite-header">
-                <h3>👑 Criar Minha Equipe</h3>
+                <h3>Criar Minha Equipe</h3>
                 <p>Você está conectado como <strong>${escapeHtml(state.syncStatus?.userEmail || '')}</strong>. Crie a sua equipe para sincronizar pesquisas e convidar operadores.</p>
               </div>
               <form id="create-team-form" class="invite-generator-form" style="display:flex; gap:12px; margin-top:16px;">
@@ -321,7 +321,7 @@ async function renderTeamView() {
 
             <div class="invite-code-card">
               <div class="invite-header">
-                <h3>🔑 Ingressar em uma Equipe Existente</h3>
+                <h3>Ingressar em uma Equipe Existente</h3>
                 <p>Recebeu um código de convite de outro administrador? Digite-o abaixo:</p>
               </div>
               <form id="join-team-empty-form" class="invite-generator-form" style="display:flex; gap:12px; margin-top:16px;">
@@ -390,7 +390,7 @@ async function renderTeamView() {
           <p>Equipe ativa na nuvem · ${members.length} membro(s) cadastrado(s)</p>
         </div>
         <div>
-          <span class="role-badge ${isAdmin ? 'admin' : 'member'}">${isAdmin ? '👑 Administrador' : 'Membro da Equipe'}</span>
+          <span class="role-badge ${isAdmin ? 'admin' : 'member'}">${isAdmin ? 'Administrador' : 'Membro da Equipe'}</span>
         </div>
       </div>
 
@@ -407,7 +407,7 @@ async function renderTeamView() {
               <option value="5">Até 5 operadores</option>
               <option value="999">Ilimitado</option>
             </select>
-            <button class="button primary" type="submit">⚡ Gerar Código de Convite</button>
+            <button class="button primary" type="submit">Gerar Código de Convite</button>
           </form>
 
           ${activeInvite ? `
@@ -417,7 +417,7 @@ async function renderTeamView() {
                 <span class="code-badge">${activeInvite.max_uses === 1 ? 'Uso Único' : `${activeInvite.uses_count || 0}/${activeInvite.max_uses} usos`}</span>
               </div>
               <button class="button secondary" type="button" id="btn-copy-code" data-code="${escapeHtml(activeInvite.code || activeInvite.token)}">
-                📋 Copiar Código
+                Copiar Código
               </button>
             </div>
           ` : `
