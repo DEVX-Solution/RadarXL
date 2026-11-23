@@ -304,11 +304,76 @@ async function renderTeamView() {
   try {
     const data = await api('/api/team/info');
     if (!data || !data.team) {
+      const isAuthenticated = Boolean(state.syncStatus?.isAuthenticated);
+      if (isAuthenticated) {
+        container.innerHTML = `
+          <div style="max-width: 680px; margin: 20px auto;">
+            <div class="invite-code-card" style="margin-bottom: 24px;">
+              <div class="invite-header">
+                <h3>👑 Criar Minha Equipe</h3>
+                <p>Você está conectado como <strong>${escapeHtml(state.syncStatus?.userEmail || '')}</strong>. Crie a sua equipe para sincronizar pesquisas e convidar operadores.</p>
+              </div>
+              <form id="create-team-form" class="invite-generator-form" style="display:flex; gap:12px; margin-top:16px;">
+                <input id="create-team-name" type="text" placeholder="Nome da sua Equipe (Ex: DEVX Solutions)" required style="flex:1;">
+                <button class="button primary" type="submit">Criar Minha Equipe</button>
+              </form>
+            </div>
+
+            <div class="invite-code-card">
+              <div class="invite-header">
+                <h3>🔑 Ingressar em uma Equipe Existente</h3>
+                <p>Recebeu um código de convite de outro administrador? Digite-o abaixo:</p>
+              </div>
+              <form id="join-team-empty-form" class="invite-generator-form" style="display:flex; gap:12px; margin-top:16px;">
+                <input id="join-empty-code" type="text" placeholder="Código (Ex: 1010)" maxlength="16" required style="width:200px; text-transform:uppercase;">
+                <button class="button secondary" type="submit">Ingressar na Equipe</button>
+              </form>
+            </div>
+          </div>
+        `;
+
+        $('#create-team-form')?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const teamName = $('#create-team-name').value.trim();
+          try {
+            const res = await api('/api/team/create', {
+              method: 'POST',
+              body: JSON.stringify({ teamName })
+            });
+            toast(`Equipe "${res.result?.team_name || teamName}" criada com sucesso!`);
+            await pollMetrics();
+            await renderTeamView();
+            await loadData();
+          } catch (err) {
+            toast(`Erro ao criar equipe: ${err.message}`);
+          }
+        });
+
+        $('#join-team-empty-form')?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const code = $('#join-empty-code').value.trim();
+          try {
+            const res = await api('/api/team/join', {
+              method: 'POST',
+              body: JSON.stringify({ code })
+            });
+            toast(`Você ingressou na equipe ${res.result?.team_name || ''} com sucesso!`);
+            await pollMetrics();
+            await renderTeamView();
+            await loadData();
+          } catch (err) {
+            toast(`Erro: ${err.message}`);
+          }
+        });
+
+        return;
+      }
+
       container.innerHTML = `
         <div class="empty-state" style="padding: 40px 20px;">
-          <h3>Nenhuma Equipe Conectada</h3>
-          <p>Você está operando em Modo Local. Crie ou conecte uma conta de equipe para gerenciar membros e gerar códigos de convite.</p>
-          <button class="button primary" type="button" data-action="open-auth" style="margin-top:16px;">Conectar ou Criar Equipe</button>
+          <h3>Nenhuma Conta Conectada</h3>
+          <p>Você está operando em Modo Local. Conecte sua conta para criar uma equipe ou entrar com o código de convite do seu time.</p>
+          <button class="button primary" type="button" data-action="open-auth" style="margin-top:16px;">Conectar ou Criar Conta</button>
         </div>
       `;
       return;
@@ -739,7 +804,7 @@ document.addEventListener('click', async (event) => {
           $('#auth-logged-view').classList.remove('hidden');
           $('#auth-login-view').classList.add('hidden');
           $('#auth-current-email').textContent = sync.userEmail;
-          $('#auth-current-team').textContent = sync.teamName || 'Equipe Principal';
+          $('#auth-current-team').textContent = sync.teamName ? sync.teamName : 'Nenhuma equipe (acesse a aba Equipe)';
         } else {
           $('#auth-logged-view').classList.add('hidden');
           $('#auth-login-view').classList.remove('hidden');

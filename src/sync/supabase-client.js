@@ -53,14 +53,31 @@ export async function ensureProfileAndTeam(user, fullName = '', teamName = '') {
       return profile;
     }
 
-    // Criar equipe se não existir
+    // Tentar via RPC create_user_team primeiro (privilégios elevados)
+    const targetTeamName = teamName || (fullName ? `Equipe ${fullName}` : `Equipe ${user.email.split('@')[0]}`);
+    const { data: rpcRes, error: rpcErr } = await supabase.rpc('create_user_team', {
+      p_team_name: targetTeamName
+    });
+
+    if (!rpcErr && rpcRes && rpcRes.team_id) {
+      const { data: refetchedProfile } = await supabase
+        .from('profiles')
+        .select('*, teams(*)')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (refetchedProfile) {
+        currentProfile = refetchedProfile;
+        return refetchedProfile;
+      }
+    }
+
+    // Fallback: Criar equipe via inserção direta se não existir
     let teamId = profile?.team_id;
     if (!teamId) {
-      const name = teamName || `Equipe ${fullName || user.email.split('@')[0]}`;
       const slug = `team-${user.id.substring(0, 8)}-${Date.now()}`;
       const { data: newTeam, error: teamErr } = await supabase
         .from('teams')
-        .insert({ name, slug })
+        .insert({ name: targetTeamName, slug })
         .select()
         .maybeSingle();
 
@@ -93,6 +110,62 @@ export async function ensureProfileAndTeam(user, fullName = '', teamName = '') {
   }
 
   return currentProfile;
+}
+
+export async function createTeam(teamName) {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error('Supabase não configurado neste ambiente.');
+
+  const userSession = await getCurrentUser();
+  if (!userSession?.user) throw new Error('É necessário estar conectado a uma conta para criar uma equipe.');
+
+  const user = userSession.user;
+  const name = (teamName || '').trim() || 'Minha Equipe';
+
+  // 1. Tentar via RPC com SECURITY DEFINER
+  const { data: rpcData, error: rpcError } = await supabase.rpc('create_user_team', {
+    p_team_name: name
+  });
+
+  if (!rpcError && rpcData?.ok) {
+    currentProfile = null;
+    await getCurrentUser();
+    return rpcData;
+  }
+
+  // 2. Fallback: inserção direta nas tabelas teams e profiles
+  const slug = `team-${user.id.substring(0, 8)}-${Date.now()}`;
+  const { data: newTeam, error: teamErr } = await supabase
+    .from('teams')
+    .insert({ name, slug })
+    .select()
+    .single();
+
+  if (teamErr) {
+    throw new Error(teamErr.message || 'Falha ao criar equipe no Supabase. Execute o script SQL no painel do Supabase.');
+  }
+
+  const { error: profileErr } = await supabase
+    .from('profiles')
+    .upsert({
+      id: user.id,
+      team_id: newTeam.id,
+      full_name: userSession.profile?.full_name || user.email.split('@')[0],
+      email: user.email,
+      role: 'admin'
+    });
+
+  if (profileErr) throw profileErr;
+
+  await supabase
+    .from('team_members')
+    .upsert({ team_id: newTeam.id, user_id: user.id, role: 'admin' })
+    .catch(() => {});
+
+  currentProfile = null;
+  await getCurrentUser();
+
+  return { ok: true, team_id: newTeam.id, team_name: newTeam.name };
 }
 
 export async function getCurrentUser() {

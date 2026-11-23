@@ -6,7 +6,7 @@ import { hasDigitalPresence } from '../utils/lead-eligibility.js';
 import { createLeadIdentitySet, isKnownLead, leadIdentityKeys } from '../utils/lead-identity.js';
 import { createFallbackAudit } from '../audit/website-audit.js';
 import { getSystemMetrics } from '../utils/system-metrics.js';
-import { signIn, signOut, signUp, getCurrentUser, getTeamInfo, generateTeamInvite, joinTeamWithCode } from '../sync/supabase-client.js';
+import { signIn, signOut, signUp, getCurrentUser, getTeamInfo, generateTeamInvite, joinTeamWithCode, createTeam } from '../sync/supabase-client.js';
 
 export function withRecoveredAudit(lead) {
   const audit = lead.auditoria || {};
@@ -205,6 +205,20 @@ export function createServer({ store, archiveStore, pipeline, jobs, syncWorker =
       res.json(info || { team: null, members: [], invitations: [] });
     } catch (err) {
       res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/team/create', async (req, res) => {
+    try {
+      const { teamName } = req.body;
+      const result = await createTeam(teamName);
+      if (syncWorker) {
+        syncWorker.setupRealtime().catch(() => {});
+        syncWorker.sync().catch(() => {});
+      }
+      res.json({ ok: true, result });
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'Falha ao criar equipe.' });
     }
   });
 
