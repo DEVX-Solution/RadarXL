@@ -6,7 +6,7 @@ import { hasDigitalPresence } from '../utils/lead-eligibility.js';
 import { createLeadIdentitySet, isKnownLead, leadIdentityKeys } from '../utils/lead-identity.js';
 import { createFallbackAudit } from '../audit/website-audit.js';
 import { getSystemMetrics } from '../utils/system-metrics.js';
-import { signIn, signOut, signUp, getCurrentUser, getTeamInfo, generateTeamInvite, joinTeamWithCode, createTeam } from '../sync/supabase-client.js';
+import { signIn, signOut, signUp, getCurrentUser, getTeamInfo, generateTeamInvite, joinTeamWithCode, createTeam, leaveTeam } from '../sync/supabase-client.js';
 
 export function withRecoveredAudit(lead) {
   const audit = lead.auditoria || {};
@@ -244,6 +244,18 @@ export function createServer({ store, archiveStore, pipeline, jobs, syncWorker =
       res.json({ ok: true, result });
     } catch (err) {
       res.status(400).json({ error: err.message || 'Falha ao ingressar na equipe.' });
+    }
+  });
+
+  app.post('/api/team/leave', async (_req, res) => {
+    try {
+      await leaveTeam();
+      if (syncWorker) {
+        syncWorker.setupRealtime().catch(() => {});
+      }
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'Falha ao sair da equipe.' });
     }
   });
 

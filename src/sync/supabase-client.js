@@ -37,7 +37,7 @@ export function getSupabase() {
   return supabaseInstance;
 }
 
-export async function ensureProfileAndTeam(user, fullName = '', teamName = '') {
+export async function ensureProfileAndTeam(user, fullName = '') {
   const supabase = getSupabase();
   if (!supabase || !user) return null;
 
@@ -48,51 +48,18 @@ export async function ensureProfileAndTeam(user, fullName = '', teamName = '') {
       .eq('id', user.id)
       .maybeSingle();
 
-    if (profile && profile.team_id) {
+    if (profile) {
       currentProfile = profile;
       return profile;
     }
 
-    // Tentar via RPC create_user_team primeiro (privilégios elevados)
-    const targetTeamName = teamName || (fullName ? `Equipe ${fullName}` : `Equipe ${user.email.split('@')[0]}`);
-    const { data: rpcRes, error: rpcErr } = await supabase.rpc('create_user_team', {
-      p_team_name: targetTeamName
-    });
-
-    if (!rpcErr && rpcRes && rpcRes.team_id) {
-      const { data: refetchedProfile } = await supabase
-        .from('profiles')
-        .select('*, teams(*)')
-        .eq('id', user.id)
-        .maybeSingle();
-      if (refetchedProfile) {
-        currentProfile = refetchedProfile;
-        return refetchedProfile;
-      }
-    }
-
-    // Fallback: Criar equipe via inserção direta se não existir
-    let teamId = profile?.team_id;
-    if (!teamId) {
-      const slug = `team-${user.id.substring(0, 8)}-${Date.now()}`;
-      const { data: newTeam, error: teamErr } = await supabase
-        .from('teams')
-        .insert({ name: targetTeamName, slug })
-        .select()
-        .maybeSingle();
-
-      if (!teamErr && newTeam) {
-        teamId = newTeam.id;
-      }
-    }
-
-    // Criar/atualizar perfil vinculado
+    // Perfil inicial sem equipe vinculada
     const profileData = {
       id: user.id,
-      team_id: teamId || null,
+      team_id: null,
       full_name: fullName || user.email.split('@')[0],
       email: user.email,
-      role: 'admin'
+      role: 'member'
     };
 
     const { data: updatedProfile } = await supabase
@@ -106,7 +73,7 @@ export async function ensureProfileAndTeam(user, fullName = '', teamName = '') {
       return updatedProfile;
     }
   } catch (err) {
-    logger.warn('Aviso ao sincronizar perfil e equipe do usuário:', { error: err.message });
+    logger.warn('Aviso ao sincronizar perfil do usuário:', { error: err.message });
   }
 
   return currentProfile;
@@ -166,6 +133,28 @@ export async function createTeam(teamName) {
   await getCurrentUser();
 
   return { ok: true, team_id: newTeam.id, team_name: newTeam.name };
+}
+
+export async function leaveTeam() {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error('Supabase não configurado neste ambiente.');
+
+  const userSession = await getCurrentUser();
+  if (!userSession?.user) throw new Error('Usuário não autenticado.');
+
+  await supabase
+    .from('profiles')
+    .update({ team_id: null, role: 'member' })
+    .eq('id', userSession.user.id);
+
+  await supabase
+    .from('team_members')
+    .delete()
+    .eq('user_id', userSession.user.id);
+
+  currentProfile = null;
+  await getCurrentUser();
+  return { ok: true };
 }
 
 export async function getCurrentUser() {

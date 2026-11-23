@@ -586,31 +586,19 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==============================================================================
--- TRIGGER AUTOMÁTICO: NOVO USUÁRIO CADASTRA E JÁ GANHA EQUIPE
+-- TRIGGER AUTOMÁTICO: NOVO USUÁRIO CADASTRA SEM EQUIPE (ESCOLHE NA ABA EQUIPE)
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
-    new_team_id UUID;
     user_name TEXT;
-    user_team_name TEXT;
 BEGIN
     user_name := COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
-    user_team_name := COALESCE(new.raw_user_meta_data->>'team_name', 'DEVX Solutions');
-    
-    INSERT INTO public.teams (name, slug)
-    VALUES (user_team_name, 'team-' || substr(new.id::text, 1, 8) || '-' || extract(epoch from now())::bigint)
-    RETURNING id INTO new_team_id;
     
     INSERT INTO public.profiles (id, team_id, full_name, email, role)
-    VALUES (new.id, new_team_id, user_name, new.email, 'admin')
+    VALUES (new.id, NULL, user_name, new.email, 'member')
     ON CONFLICT (id) DO UPDATE SET
-        team_id = COALESCE(public.profiles.team_id, new_team_id),
         full_name = EXCLUDED.full_name;
-    
-    INSERT INTO public.team_members (team_id, user_id, role)
-    VALUES (new_team_id, new.id, 'admin')
-    ON CONFLICT (team_id, user_id) DO NOTHING;
     
     RETURN new;
 END;
@@ -621,35 +609,7 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- ==============================================================================
--- REPARO AUTOMÁTICO: VINCULAR USUÁRIO ATUAL À EQUIPE "DEVX Solutions"
--- ==============================================================================
-DO $$
-DECLARE
-    u RECORD;
-    t_id UUID;
-    u_name TEXT;
-    u_team TEXT;
-BEGIN
-    FOR u IN SELECT * FROM auth.users LOOP
-        IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = u.id AND team_id IS NOT NULL) THEN
-            u_name := COALESCE(u.raw_user_meta_data->>'full_name', split_part(u.email, '@', 1));
-            u_team := 'DEVX Solutions';
-            
-            INSERT INTO public.teams (name, slug)
-            VALUES (u_team, 'team-' || substr(u.id::text, 1, 8) || '-' || extract(epoch from now())::bigint)
-            RETURNING id INTO t_id;
-
-            INSERT INTO public.profiles (id, team_id, full_name, email, role)
-            VALUES (u.id, t_id, u_name, u.email, 'admin')
-            ON CONFLICT (id) DO UPDATE SET
-                team_id = t_id,
-                full_name = u_name,
-                role = 'admin';
-
-            INSERT INTO public.team_members (team_id, user_id, role)
-            VALUES (t_id, u.id, 'admin')
-            ON CONFLICT (team_id, user_id) DO UPDATE SET role = 'admin';
-        END IF;
-    END LOOP;
-END $$;
+-- Desvincular equipe criada automaticamente para permitir criação manual
+UPDATE public.profiles SET team_id = NULL, role = 'member' WHERE email = 'mariocesar77866@gmail.com';
+DELETE FROM public.team_members WHERE user_id IN (SELECT id FROM auth.users WHERE email = 'mariocesar77866@gmail.com');
+DELETE FROM public.teams WHERE slug LIKE 'team-%';

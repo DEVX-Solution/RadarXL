@@ -389,8 +389,9 @@ async function renderTeamView() {
           <h2>${escapeHtml(team.name)}</h2>
           <p>Equipe ativa na nuvem · ${members.length} membro(s) cadastrado(s)</p>
         </div>
-        <div>
+        <div style="display:flex; align-items:center; gap:12px;">
           <span class="role-badge ${isAdmin ? 'admin' : 'member'}">${isAdmin ? 'Administrador' : 'Membro da Equipe'}</span>
+          <button class="button secondary" type="button" id="btn-leave-team" style="font-size:12px; padding:6px 14px;">Sair da Equipe</button>
         </div>
       </div>
 
@@ -514,6 +515,18 @@ async function renderTeamView() {
         }).catch(() => {
           toast(`Código: ${code}`);
         });
+      }
+    });
+
+    $('#btn-leave-team')?.addEventListener('click', async () => {
+      if (!confirm('Deseja se desvincular desta equipe? Você poderá criar uma nova com o nome que desejar ou entrar com um código.')) return;
+      try {
+        await api('/api/team/leave', { method: 'POST' });
+        toast('Você saiu da equipe.');
+        await pollMetrics();
+        await renderTeamView();
+      } catch (err) {
+        toast(`Erro ao sair da equipe: ${err.message}`);
       }
     });
 
