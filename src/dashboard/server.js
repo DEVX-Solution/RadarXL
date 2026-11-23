@@ -6,6 +6,7 @@ import { hasDigitalPresence } from '../utils/lead-eligibility.js';
 import { createLeadIdentitySet, isKnownLead, leadIdentityKeys } from '../utils/lead-identity.js';
 import { createFallbackAudit } from '../audit/website-audit.js';
 import { getSystemMetrics } from '../utils/system-metrics.js';
+import { getAppMeta, setAppMeta, getAllAppMeta, getDatabasePath } from '../storage/sqlite-db.js';
 import { signIn, signOut, signUp, getCurrentUser, getTeamInfo, generateTeamInvite, joinTeamWithCode, createTeam, leaveTeam } from '../sync/supabase-client.js';
 
 export function withRecoveredAudit(lead) {
@@ -281,6 +282,64 @@ export function createServer({ store, archiveStore, pipeline, jobs, syncWorker =
   // Endpoints Principais de Leads
   app.get('/api/health', (_request, response) => response.json({ ok: true, time: new Date().toISOString() }));
   app.get('/api/config', (_request, response) => response.json(publicConfig()));
+
+  app.get('/api/settings', (_req, res) => {
+    try {
+      const stored = getAllAppMeta(store.db);
+      const totalLeads = store.db.prepare('SELECT COUNT(*) as count FROM local_leads').get()?.count || 0;
+      const totalSearches = store.db.prepare('SELECT COUNT(*) as count FROM local_searches').get()?.count || 0;
+      res.json({
+        ok: true,
+        settings: {
+          discoveryProvider: stored.discoveryProvider || config.discoveryProvider,
+          defaultLimit: stored.defaultLimit || config.maxLeadsPerSearch,
+          auditMode: stored.auditMode || config.auditMode,
+          candidateMultiplier: stored.candidateMultiplier || config.candidateMultiplier,
+          skipUnreachableWebsites: stored.skipUnreachableWebsites ?? config.skipUnreachableWebsites,
+          websitePrecheckTimeoutMs: stored.websitePrecheckTimeoutMs || config.websitePrecheckTimeoutMs,
+          autoSyncInterval: stored.autoSyncInterval || 30
+        },
+        stats: {
+          totalLeads,
+          totalSearches,
+          dbPath: getDatabasePath(),
+          version: '2.0.0'
+        }
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/settings', (req, res) => {
+    try {
+      const updates = req.body || {};
+      for (const [key, value] of Object.entries(updates)) {
+        setAppMeta(store.db, key, value);
+        if (key === 'discoveryProvider') config.discoveryProvider = value;
+        if (key === 'defaultLimit') config.maxLeadsPerSearch = Number(value);
+        if (key === 'auditMode') config.auditMode = value;
+        if (key === 'candidateMultiplier') config.candidateMultiplier = Number(value);
+        if (key === 'skipUnreachableWebsites') config.skipUnreachableWebsites = Boolean(value);
+        if (key === 'websitePrecheckTimeoutMs') config.websitePrecheckTimeoutMs = Number(value);
+      }
+      res.json({ ok: true, message: 'Configurações salvas com sucesso.' });
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'Falha ao salvar configurações.' });
+    }
+  });
+
+  app.post('/api/database/clear-history', (_req, res) => {
+    try {
+      store.db.exec(`
+        DELETE FROM local_search_leads WHERE search_id IN (SELECT id FROM local_searches WHERE status = 'concluido');
+        DELETE FROM local_searches WHERE status = 'concluido';
+      `);
+      res.json({ ok: true, message: 'Histórico de pesquisas concluídas limpo com sucesso.' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
   
   app.get('/api/leads', (request, response) => {
     response.json(visibleLeads(store, archiveStore, {

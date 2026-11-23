@@ -152,3 +152,43 @@ export function closeDatabase() {
     dbInstance = null;
   }
 }
+
+export function getAppMeta(db, key, fallback = null) {
+  try {
+    const row = db.prepare('SELECT value FROM app_meta WHERE key = ?').get(key);
+    return row ? JSON.parse(row.value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function setAppMeta(db, key, value) {
+  try {
+    const serialized = JSON.stringify(value);
+    db.prepare(`
+      INSERT INTO app_meta (key, value) VALUES (?, ?)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value
+    `).run(key, serialized);
+    return true;
+  } catch (err) {
+    logger.warn('Erro ao salvar meta no SQLite:', { error: err.message });
+    return false;
+  }
+}
+
+export function getAllAppMeta(db) {
+  try {
+    const rows = db.prepare('SELECT key, value FROM app_meta').all();
+    const result = {};
+    for (const row of rows) {
+      try {
+        result[row.key] = JSON.parse(row.value);
+      } catch {
+        result[row.key] = row.value;
+      }
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}

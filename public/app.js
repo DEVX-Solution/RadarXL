@@ -142,6 +142,7 @@ function switchView(viewName) {
   if (viewName === 'team-searches') renderTeamSearches();
   if (viewName === 'team') renderTeamView();
   if (viewName === 'all-leads') renderAllLeadsView();
+  if (viewName === 'settings') renderSettingsView();
   if (viewName === 'favorites') {
     state.onlyFavorites = true;
     renderLeads();
@@ -293,6 +294,226 @@ function renderArchives() {
       <button class="button ghost" type="button" data-action="restore-archive" data-id="${escapeHtml(archive.id)}">Restaurar na tela</button>
     </article>
   `).join('');
+}
+
+async function renderSettingsView() {
+  const container = $('#settings-container');
+  if (!container) return;
+
+  container.innerHTML = '<div class="loading-state">Carregando configurações...</div>';
+
+  try {
+    const [cfgRes, syncRes] = await Promise.all([
+      api('/api/settings').catch(() => ({ settings: {}, stats: {} })),
+      api('/api/sync/status').catch(() => ({}))
+    ]);
+
+    const s = cfgRes.settings || {};
+    const stats = cfgRes.stats || {};
+
+    container.innerHTML = `
+      <form id="settings-form" style="display:contents;">
+        <!-- CARD 1: PROSPECÇÃO & MOTOR DE BUSCA -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <h3>Prospecção e Motor de Busca</h3>
+            <p>Ajuste os parâmetros de descoberta de empresas e deduplicação.</p>
+          </div>
+
+          <div class="settings-item">
+            <label for="cfg-provider">Provedor de Descoberta</label>
+            <select id="cfg-provider" name="discoveryProvider">
+              <option value="auto" ${s.discoveryProvider === 'auto' ? 'selected' : ''}>Automático (OpenStreetMap + Google Places)</option>
+              <option value="openstreetmap" ${s.discoveryProvider === 'openstreetmap' ? 'selected' : ''}>OpenStreetMap (Gratuito e sem limites)</option>
+              <option value="google" ${s.discoveryProvider === 'google' ? 'selected' : ''}>Google Places API</option>
+            </select>
+            <p class="desc">OpenStreetMap opera 100% gratuito sem exigir cartão de crédito ou chaves.</p>
+          </div>
+
+          <div class="settings-item">
+            <label for="cfg-limit">Limite Padrão por Busca</label>
+            <select id="cfg-limit" name="defaultLimit">
+              <option value="10" ${Number(s.defaultLimit) === 10 ? 'selected' : ''}>10 empresas</option>
+              <option value="20" ${Number(s.defaultLimit) === 20 ? 'selected' : ''}>20 empresas (Recomendado)</option>
+              <option value="50" ${Number(s.defaultLimit) === 50 ? 'selected' : ''}>50 empresas</option>
+              <option value="100" ${Number(s.defaultLimit) === 100 ? 'selected' : ''}>100 empresas (Busca profunda)</option>
+            </select>
+            <p class="desc">Quantidade de empresas válidas entregues por ciclo de pesquisa.</p>
+          </div>
+
+          <div class="settings-item">
+            <label for="cfg-multiplier">Multiplicador de Deduplicação</label>
+            <select id="cfg-multiplier" name="candidateMultiplier">
+              <option value="4" ${Number(s.candidateMultiplier) === 4 ? 'selected' : ''}>4x candidatos</option>
+              <option value="8" ${Number(s.candidateMultiplier) === 8 ? 'selected' : ''}>8x candidatos (Equilíbrio)</option>
+              <option value="12" ${Number(s.candidateMultiplier) === 12 ? 'selected' : ''}>12x candidatos (Substituição máxima de repetidos)</option>
+            </select>
+            <p class="desc">Varre mais candidatos para substituir empresas sem telefone ou duplicadas.</p>
+          </div>
+
+          <div class="settings-row" style="margin-top: 6px;">
+            <div class="info">
+              <p class="title">Ignorar Sites Inacessíveis</p>
+              <p class="desc">Descarta empresas com domínio expirado ou erro de servidor.</p>
+            </div>
+            <input type="checkbox" id="cfg-skip-unreachable" name="skipUnreachableWebsites" ${s.skipUnreachableWebsites ? 'checked' : ''} style="accent-color:var(--accent); width:18px; height:18px; cursor:pointer;">
+          </div>
+        </div>
+
+        <!-- CARD 2: AUDITORIA TÉCNICA & HARDWARE -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <h3>Auditoria Técnica e Desempenho</h3>
+            <p>Controle o impacto de uso de memória RAM e processamento no seu computador.</p>
+          </div>
+
+          <div class="settings-item">
+            <label for="cfg-audit-mode">Modo de Auditoria Padrão</label>
+            <select id="cfg-audit-mode" name="auditMode">
+              <option value="economico" ${s.auditMode === 'economico' ? 'selected' : ''}>Econômico (50MB RAM - Checagem HTTP/SSL/Tags)</option>
+              <option value="intermediario" ${s.auditMode === 'intermediario' ? 'selected' : ''}>Intermediário (Auditoria SEO e Redes Sociais)</option>
+              <option value="completo" ${s.auditMode === 'completo' ? 'selected' : ''}>Completo (Lighthouse e Navegador Headless)</option>
+            </select>
+            <p class="desc">O modo econômico realiza auditorias instantâneas sem pesar no computador.</p>
+          </div>
+
+          <div class="settings-item">
+            <label for="cfg-timeout">Timeout de Verificação de Site</label>
+            <select id="cfg-timeout" name="websitePrecheckTimeoutMs">
+              <option value="5000" ${Number(s.websitePrecheckTimeoutMs) === 5000 ? 'selected' : ''}>5 segundos (Rápido)</option>
+              <option value="8000" ${Number(s.websitePrecheckTimeoutMs) === 8000 ? 'selected' : ''}>8 segundos (Padrão)</option>
+              <option value="15000" ${Number(s.websitePrecheckTimeoutMs) === 15000 ? 'selected' : ''}>15 segundos (Conexões instáveis)</option>
+            </select>
+            <p class="desc">Tempo limite antes de considerar um website como fora do ar.</p>
+          </div>
+
+          <div class="settings-row" style="margin-top: 10px;">
+            <div class="info">
+              <p class="title">Sincronização em Nuvem (Supabase)</p>
+              <p class="desc">Status: <strong style="color:var(--accent-light);">${syncRes.isAuthenticated ? 'Conectado (' + escapeHtml(syncRes.userEmail || '') + ')' : 'Modo Local (Desconectado)'}</strong></p>
+            </div>
+            <button class="button secondary" type="button" data-action="open-auth" style="font-size:12px; padding:6px 12px;">
+              ${syncRes.isAuthenticated ? 'Gerenciar Conta' : 'Conectar'}
+            </button>
+          </div>
+
+          <div class="settings-actions" style="margin-top:auto;">
+            <button class="button primary" type="submit">Salvar Configurações</button>
+          </div>
+        </div>
+
+        <!-- CARD 3: BANCO DE DADOS & ARMAZENAMENTO LOCAL -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <h3>Banco de Dados e Armazenamento</h3>
+            <p>Gerenciamento do banco SQLite local de alta performance.</p>
+          </div>
+
+          <div class="settings-item">
+            <label>Localização do Banco de Dados</label>
+            <span class="stat-pill" style="word-break: break-all;">${escapeHtml(stats.dbPath || 'data/radarxl.db')}</span>
+            <p class="desc">Armazenamento ACID com WAL ativado para operações simultâneas.</p>
+          </div>
+
+          <div class="settings-row">
+            <div class="info">
+              <p class="title">Empresas Cadastradas no SQLite</p>
+              <p class="desc">Total acumulado de leads locais.</p>
+            </div>
+            <span class="stat-pill">${Number(stats.totalLeads || 0)}</span>
+          </div>
+
+          <div class="settings-row">
+            <div class="info">
+              <p class="title">Histórico de Pesquisas</p>
+              <p class="desc">Total de buscas registradas.</p>
+            </div>
+            <span class="stat-pill">${Number(stats.totalSearches || 0)}</span>
+          </div>
+
+          <div style="margin-top: 10px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="button secondary" type="button" id="btn-clear-history" style="font-size:12px;">Limpar Histórico de Buscas</button>
+          </div>
+        </div>
+
+        <!-- CARD 4: SOBRE O SISTEMA & ATUALIZAÇÕES -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <h3>Sobre o RadarXL Intelligence</h3>
+            <p>Informações de versão e canal de atualizações automáticas.</p>
+          </div>
+
+          <div class="settings-row">
+            <div class="info">
+              <p class="title">Versão do Aplicativo</p>
+              <p class="desc">Build com Auto-Updater e sincronização em equipe.</p>
+            </div>
+            <span class="stat-pill">v2.0.0</span>
+          </div>
+
+          <div class="settings-row">
+            <div class="info">
+              <p class="title">Canal de Atualização</p>
+              <p class="desc">GitHub Releases (DEVX-Solution/RadarXL)</p>
+            </div>
+            <span class="stat-pill">Oficial</span>
+          </div>
+
+          <div class="settings-row">
+            <div class="info">
+              <p class="title">Desenvolvido por</p>
+              <p class="desc">DEVX Solutions</p>
+            </div>
+          </div>
+
+          <div style="margin-top:auto;">
+            <a href="https://github.com/DEVX-Solution/RadarXL/releases" target="_blank" class="button secondary" style="display:inline-block; text-decoration:none; font-size:12px; text-align:center; width:100%;">
+              Verificar Atualizações no GitHub
+            </a>
+          </div>
+        </div>
+      </form>
+    `;
+
+    $('#settings-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const formData = new FormData(form);
+      const payload = {
+        discoveryProvider: formData.get('discoveryProvider'),
+        defaultLimit: Number(formData.get('defaultLimit')),
+        candidateMultiplier: Number(formData.get('candidateMultiplier')),
+        skipUnreachableWebsites: Boolean($('#cfg-skip-unreachable')?.checked),
+        auditMode: formData.get('auditMode'),
+        websitePrecheckTimeoutMs: Number(formData.get('websitePrecheckTimeoutMs'))
+      };
+
+      try {
+        const res = await api('/api/settings', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        toast(res.message || 'Configurações salvas com sucesso.');
+        await pollMetrics();
+      } catch (err) {
+        toast(`Erro ao salvar: ${err.message}`);
+      }
+    });
+
+    $('#btn-clear-history')?.addEventListener('click', async () => {
+      if (!confirm('Deseja limpar o histórico de buscas concluídas? Os leads salvos e favoritos não serão apagados.')) return;
+      try {
+        const res = await api('/api/database/clear-history', { method: 'POST' });
+        toast(res.message || 'Histórico limpo.');
+        renderSettingsView();
+      } catch (err) {
+        toast(`Erro: ${err.message}`);
+      }
+    });
+
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state">Erro ao carregar configurações: ${escapeHtml(err.message)}</div>`;
+  }
 }
 
 async function renderTeamView() {

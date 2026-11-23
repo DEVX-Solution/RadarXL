@@ -1258,3 +1258,120 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   margin-right: 10px;
   vertical-align: middle;
 }
+
+/* PAINEL DE CONFIGURAÇÕES */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 20px;
+  padding: 10px 0 40px;
+}
+
+.settings-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow);
+}
+
+.settings-card-header {
+  border-bottom: 1px solid var(--surface-border);
+  padding-bottom: 12px;
+}
+
+.settings-card-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.settings-card-header p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.settings-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-item label {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.settings-item .desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.settings-item select,
+.settings-item input[type="text"],
+.settings-item input[type="number"] {
+  background: #0f0d18;
+  border: 1px solid var(--surface-border);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.settings-item select:focus,
+.settings-item input:focus {
+  border-color: var(--accent);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 0;
+}
+
+.settings-row .info {
+  flex: 1;
+}
+
+.settings-row .title {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+  margin: 0 0 2px;
+}
+
+.settings-row .desc {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.stat-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--accent-light);
+  font-family: monospace;
+}
