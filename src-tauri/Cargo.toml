@@ -1,0 +1,17 @@
+[package]
+name = "radarxl"
+version = "2.0.0"
+description = "RadarXL Intelligence 2.0 - Prospecção Comercial e Sincronização em Equipe"
+authors = ["DEVX Solutions"]
+license = "Proprietary"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2.5", features = [] }
+
+[dependencies]
+tauri = { version = "2.5", features = [] }
+tauri-plugin-shell = "2.2"
+tauri-plugin-updater = "2.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

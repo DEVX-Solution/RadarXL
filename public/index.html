@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RadarXL Intelligence 2.0 - Prospecção Comercial e Sincronização em Equipe.">
+  <title>RadarXL Intelligence 2.0</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" href="/logos/radarxl-app-icon-purple.png">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- BARRA LATERAL RADARXL -->
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="RadarXL Intelligence">
+        <img src="/logos/radarxl-logo-horizontal-purple.png" alt="RadarXL Intelligence 2.0" class="brand-logo-img">
+      </a>
+
+      <!-- 11 SEÇÕES DE NAVEGAÇÃO COM ÍCONES OFICIAIS -->
+      <nav class="nav-list" aria-label="Navegação principal">
+        <button class="nav-item active" type="button" data-view="dashboard">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          </span>
+          Dashboard
+        </button>
+
+        <button class="nav-item" type="button" data-action="open-search">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          </span>
+          Nova pesquisa
+        </button>
+
+        <button class="nav-item" type="button" data-view="team-searches">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg>
+          </span>
+          Pesquisas da equipe
+        </button>
+
+        <button class="nav-item" type="button" data-view="my-searches">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+          </span>
+          Minhas pesquisas
+        </button>
+
+        <button class="nav-item" type="button" data-view="all-leads">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+          </span>
+          Todos os leads
+        </button>
+
+        <button class="nav-item" type="button" data-view="favorites">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>
+          </span>
+          Favoritos
+        </button>
+
+        <button class="nav-item" type="button" data-view="archives">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="19" r="2"/><path d="M20.9 19.8A2 2 0 0 0 22 18V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h5.1"/><path d="M15 11v-1"/><path d="M15 17v-2"/></svg>
+          </span>
+          Buscas arquivadas
+        </button>
+
+        <button class="nav-item" type="button" data-view="audits">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+          </span>
+          Auditorias
+        </button>
+
+        <button class="nav-item" type="button" data-view="reports">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+          </span>
+          Relatórios
+        </button>
+
+        <button id="nav-team" class="nav-item hidden" type="button" data-view="team">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+          </span>
+          Equipe
+        </button>
+
+        <button class="nav-item" type="button" data-view="settings">
+          <span class="nav-icon">
+            <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>
+          </span>
+          Configurações
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <!-- TELEMETRIA DE HARDWARE & STATUS -->
+      <div class="system-telemetry-card">
+        <div class="telemetry-header">
+          <span class="telemetry-title">SISTEMA & RECURSOS</span>
+          <span id="telemetry-pulse" class="pulse-online"></span>
+        </div>
+        <div class="telemetry-metrics">
+          <div class="telemetry-item">
+            <span>RAM</span>
+            <strong id="metric-ram">-- MB</strong>
+          </div>
+          <div class="telemetry-item">
+            <span>CPU</span>
+            <strong id="metric-cpu">-- %</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <div class="config-title"><span class="pulse"></span> Status Operacional</div>
+        <div id="config-status" class="config-list"><span>Inicializando...</span></div>
+      </div>
+
+      <p class="brand-slogan">Encontre oportunidades. Conquiste negócios.</p>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="main-content">
+      <!-- TOPBAR COM TELEMETRIA E SINCRONIZAÇÃO -->
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">RadarXL Intelligence 2.0</p>
+          <h1 id="page-title">Dashboard Comercial</h1>
+        </div>
+
+        <div class="top-status-group">
+          <!-- BADGE DE REDE -->
+          <div id="network-badge" class="status-pill online" title="Status da Conexão">
+            <span class="status-indicator"></span>
+            <span id="network-text">Online</span>
+          </div>
+
+          <!-- BADGE DE SINCRONIZAÇÃO SUPABASE -->
+          <div id="sync-badge" class="status-pill synced" title="Clique para sincronizar agora">
+            <svg class="sync-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+            <span id="sync-text">Sincronizado</span>
+          </div>
+
+          <!-- BOTÃO DE USUÁRIO / AUTH -->
+          <button id="auth-button" class="user-profile-button" type="button" data-action="open-auth" title="Gerenciar Conta e Equipe">
+            <span class="user-avatar" id="user-avatar">RX</span>
+            <span class="user-name" id="user-display-name">Conta Local</span>
+          </button>
+
+          <!-- AÇÕES RÁPIDAS -->
+          <button class="button secondary" type="button" data-action="open-manual">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Lead Manual
+          </button>
+          
+          <button class="button primary" type="button" data-action="open-search">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+            Nova Busca
+          </button>
+        </div>
+      </header>
+
+      <!-- BANNER DE TAREFA EM ANDAMENTO -->
+      <section id="job-banner" class="job-banner hidden" aria-live="polite">
+        <div class="spinner"></div>
+        <div class="job-copy">
+          <strong id="job-title">Executando pesquisa...</strong>
+          <span id="job-detail">Analisando empresas na região</span>
+        </div>
+        <div class="job-progress"><span id="job-progress-bar"></span></div>
+      </section>
+
+      <!-- CONTEÚDO DINÂMICO DAS SEÇÕES -->
+      <div id="view-container">
+        <!-- SEÇÃO: DASHBOARD -->
+        <div id="section-dashboard" class="content-view active">
+          <!-- CARDS DE ESTATÍSTICAS -->
+          <section class="stats-grid" aria-label="Resumo">
+            <article class="stat-card featured">
+              <span class="stat-label">Oportunidades Quentes</span>
+              <strong id="stat-hot">0</strong>
+              <small>Score a partir de 70</small>
+              <span class="stat-orbit"></span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Total de Empresas</span>
+              <strong id="stat-total">0</strong>
+              <small id="stat-completed">0 análises concluídas</small>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Sem Website Ativo</span>
+              <strong id="stat-no-site">0</strong>
+              <small>Candidatos de presença digital</small>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Performance Técnica Média</span>
+              <strong id="stat-performance">--</strong>
+              <small>Entre sites auditados</small>
+            </article>
+          </section>
+
+          <!-- SEÇÃO PRINCIPAL DE LEADS DO DASHBOARD -->
+          <section id="leads-section" class="leads-section">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Pipeline Comercial</p>
+                <h2>Leads em Destaque</h2>
+              </div>
+              <div class="lead-toolbar">
+                <div class="filters">
+                  <label class="search-box">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+                    <input id="lead-search" type="search" placeholder="Buscar por nome, cidade, categoria..." autocomplete="off">
+                  </label>
+                  <label class="score-filter">
+                    <span>Score Mínimo</span>
+                    <select id="score-filter">
+                      <option value="0">Todos</option>
+                      <option value="40">40+</option>
+                      <option value="70">70+ (Quentes)</option>
+                      <option value="90">90+ (Críticos)</option>
+                    </select>
+                  </label>
+                  <button id="favorite-filter" class="button favorite-filter" type="button" data-action="toggle-favorite-filter" aria-pressed="false">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>
+                    Favoritos <span id="favorite-count" class="count-badge">0</span>
+                  </button>
+                </div>
+                <button class="button toolbar-button" type="button" data-action="open-archives">
+                  Buscas Salvas <span id="archive-count" class="count-badge">0</span>
+                </button>
+                <button id="archive-current" class="button archive-button" type="button" data-action="archive-current" disabled>
+                  Arquivar e Limpar Tela
+                </button>
+              </div>
+            </div>
+
+            <div id="lead-list" class="lead-list"></div>
+            <div id="empty-state" class="empty-state hidden">
+              <span class="empty-radar"><i></i></span>
+              <h3>Nenhuma empresa encontrada nesta exibição</h3>
+              <p>Inicie uma busca por segmento e cidade ou selecione outra pesquisa compartilhada da equipe.</p>
+              <button class="button primary" type="button" data-action="open-search">Iniciar Pesquisa no Radar</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- SEÇÃO: PESQUISAS DA EQUIPE -->
+        <div id="section-team-searches" class="content-view hidden">
+          <div class="view-action-bar" style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+            <button class="button primary" type="button" data-action="open-search">＋ Nova Pesquisa</button>
+          </div>
+          <div id="team-searches-list" class="team-searches-grid">
+            <div class="loading-state">Carregando pesquisas da equipe...</div>
+          </div>
+        </div>
+
+        <!-- SEÇÃO: MINHAS PESQUISAS -->
+        <div id="section-my-searches" class="content-view hidden">
+          <div id="my-searches-list" class="team-searches-grid"></div>
+        </div>
+
+        <!-- SEÇÃO: TODOS OS LEADS -->
+        <div id="section-all-leads" class="content-view hidden">
+          <div id="all-leads-container"></div>
+        </div>
+
+        <!-- SEÇÃO: AUDITORIAS -->
+        <div id="section-audits" class="content-view hidden">
+          <div id="audits-container" class="audits-grid"></div>
+        </div>
+
+        <!-- SEÇÃO: RELATÓRIOS -->
+        <div id="section-reports" class="content-view hidden">
+          <div id="reports-container" class="reports-grid"></div>
+        </div>
+
+        <!-- SEÇÃO: EQUIPE -->
+        <div id="section-team" class="content-view hidden">
+          <div id="team-view-content" class="team-layout">
+            <div class="loading-state">Carregando dados da equipe...</div>
+          </div>
+        </div>
+
+        <!-- SEÇÃO: CONFIGURAÇÕES -->
+        <div id="section-settings" class="content-view hidden">
+          <div id="settings-container" class="settings-grid"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: NOVA PESQUISA COM 3 MODOS DE AUDITORIA -->
+  <dialog id="search-dialog" class="dialog compact-dialog">
+    <form id="search-form" method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">OpenStreetMap • Google Places • Web</p>
+          <h2>Nova Pesquisa RadarXL</h2>
+        </div>
+        <button class="icon-button" type="button" data-close="search-dialog" aria-label="Fechar">×</button>
+      </div>
+      <p class="form-intro">
+        Pesquise empresas por categoria e localização. A deduplicação inteligente substitui automaticamente empresas repetidas ou com links inválidos.
+      </p>
+      
+      <div class="form-grid">
+        <label class="field full">
+          <span>Categoria ou Nicho</span>
+          <input name="categoria" required placeholder="Ex.: dentista, imobiliária, advocacia, restaurante" autocomplete="off">
+        </label>
+        <label class="field">
+          <span>Cidade</span>
+          <input name="cidade" required placeholder="Ex.: Campinas, Curitiba, São Paulo" autocomplete="off">
+        </label>
+        <label class="field small">
+          <span>UF</span>
+          <input name="estado" maxlength="2" placeholder="SP" autocomplete="off">
+        </label>
+        <label class="field small">
+          <span>Limite</span>
+          <input name="limite" type="number" min="1" max="50" value="10">
+        </label>
+      </div>
+
+      <!-- SELETOR DE MODO DE AUDITORIA -->
+      <div class="audit-mode-selector">
+        <label class="audit-mode-label">Modo de Auditoria e Consumo:</label>
+        <div class="audit-mode-options">
+          <label class="mode-card active">
+            <input type="radio" name="auditMode" value="economico" checked>
+            <div>
+              <strong>Modo Econômico (Recomendado)</strong>
+              <span>Baixo consumo de CPU/RAM. Fetch + Cheerio veloz, sem Lighthouse.</span>
+            </div>
+          </label>
+          <label class="mode-card">
+            <input type="radio" name="auditMode" value="completo">
+            <div>
+              <strong>Modo Completo</strong>
+              <span>Puppeteer leve. Verificação real de mobile e layout responsivo.</span>
+            </div>
+          </label>
+          <label class="mode-card">
+            <input type="radio" name="auditMode" value="profissional">
+            <div>
+              <strong>Modo Profissional</strong>
+              <span>Lighthouse completo + Screenshot do site. Análise aprofundada.</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-options">
+        <label class="demo-toggle">
+          <input name="demo" type="checkbox">
+          <span></span> Usar dados simulados (Modo Demonstração Offline)
+        </label>
+      </div>
+
+      <div id="search-error" class="form-error hidden"></div>
+      
+      <div class="dialog-actions">
+        <button class="button secondary" type="button" data-close="search-dialog">Cancelar</button>
+        <button class="button primary" type="submit">Iniciar Varredura</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL: ADICIONAR LEAD MANUAL -->
+  <dialog id="manual-dialog" class="dialog compact-dialog">
+    <form id="manual-form" method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Análise Individual</p>
+          <h2>Adicionar Empresa</h2>
+        </div>
+        <button class="icon-button" type="button" data-close="manual-dialog" aria-label="Fechar">×</button>
+      </div>
+      <div class="form-grid">
+        <label class="field full">
+          <span>Nome da Empresa</span>
+          <input name="empresa" required placeholder="Nome oficial ou comercial">
+        </label>
+        <label class="field">
+          <span>Categoria</span>
+          <input name="categoria" placeholder="Segmento de atuação">
+        </label>
+        <label class="field">
+          <span>Cidade</span>
+          <input name="cidade" placeholder="Cidade">
+        </label>
+        <label class="field full">
+          <span>Website</span>
+          <input name="site" type="url" placeholder="https://empresa.com.br">
+        </label>
+        <label class="field">
+          <span>Instagram</span>
+          <input name="instagram" placeholder="@empresa">
+        </label>
+        <label class="field">
+          <span>WhatsApp / Telefone</span>
+          <input name="telefone" placeholder="(11) 99999-9999">
+        </label>
+      </div>
+
+      <div id="manual-error" class="form-error hidden"></div>
+      
+      <div class="dialog-actions">
+        <button class="button secondary" type="button" data-close="manual-dialog">Cancelar</button>
+        <button class="button primary" type="submit">Cadastrar e Analisar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL: DETALHES DO LEAD -->
+  <dialog id="lead-dialog" class="dialog detail-dialog">
+    <div id="lead-detail"></div>
+  </dialog>
+
+  <!-- MODAL: BUSCAS ARQUIVADAS -->
+  <dialog id="archive-dialog" class="dialog archive-dialog">
+    <div class="archive-wrap">
+      <div class="dialog-header archive-header">
+        <div>
+          <p class="eyebrow">Armazenamento Local SQLite</p>
+          <h2>Buscas Salvas e Arquivadas</h2>
+        </div>
+        <button class="icon-button" type="button" data-close="archive-dialog" aria-label="Fechar">×</button>
+      </div>
+      <p class="form-intro">Lotes arquivados permanecem preservados no seu banco local e podem ser restaurados para a tela principal a qualquer momento.</p>
+      <div id="archive-list" class="archive-list"></div>
+    </div>
+  </dialog>
+
+  <!-- MODAL: AUTENTICAÇÃO SUPABASE E EQUIPE -->
+  <dialog id="auth-dialog" class="dialog compact-dialog">
+    <div class="dialog-header">
+      <div>
+        <p class="eyebrow">Supabase Cloud Sync</p>
+        <h2 id="auth-dialog-title">Conectar Equipe</h2>
+      </div>
+      <button class="icon-button" type="button" data-close="auth-dialog" aria-label="Fechar">×</button>
+    </div>
+
+    <div id="auth-logged-view" class="hidden">
+      <p class="form-intro">Você está conectado à equipe compartilhada:</p>
+      <div class="auth-info-box">
+        <p><strong>Usuário:</strong> <span id="auth-current-email">--</span></p>
+        <p><strong>Equipe:</strong> <span id="auth-current-team">--</span></p>
+        <p><strong>Status de Sincronização:</strong> <span id="auth-sync-status">Sincronizado</span></p>
+      </div>
+      <div class="dialog-actions">
+        <button class="button ghost" type="button" id="btn-force-sync">Forçar Sincronização Agora</button>
+        <button class="button secondary" type="button" id="btn-logout">Desconectar</button>
+      </div>
+    </div>
+
+    <div id="auth-login-view">
+      <!-- ABAS: ENTRAR / CRIAR CONTA -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" data-auth-tab="login">Entrar</button>
+        <button type="button" class="auth-tab" data-auth-tab="register">Criar Nova Conta</button>
+      </div>
+
+      <form id="auth-form">
+        <div id="auth-register-fields" class="hidden">
+          <label class="field full">
+            <span>Seu Nome Completo</span>
+            <input id="auth-name" name="fullName" type="text" placeholder="Digite seu nome completo">
+          </label>
+        </div>
+
+        <label class="field full">
+          <span>E-mail</span>
+          <input id="auth-email" name="email" type="email" required placeholder="seu@email.com">
+        </label>
+        <label class="field full">
+          <span>Senha</span>
+          <input id="auth-password" name="password" type="password" required minlength="6" placeholder="Mínimo 6 caracteres">
+        </label>
+
+        <div id="auth-error" class="form-error hidden"></div>
+
+        <div class="dialog-actions">
+          <button class="button secondary" type="button" data-close="auth-dialog">Fechar</button>
+          <button id="auth-submit-btn" class="button primary" type="submit">Entrar na Equipe</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

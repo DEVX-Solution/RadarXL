@@ -1,0 +1,29 @@
+# Dependências
+node_modules/
+package-lock.json
+
+# Builds e Binários
+src-tauri/target/
+dist/
+build/
+release/RadarXL.exe
+release/RadarXL-Setup.exe
+
+# Chaves Privadas do Tauri Updater (NUNCA SUBIR CHAVE PRIVADA)
+src-tauri/*.key
+*.key
+
+# Dados Locais e Logs
+.env
+data/*.db*
+data/*.json
+data/*.tmp
+data/backup_pre_migration/
+data/screenshots/*.png
+*.log
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
+.gemini/
