@@ -887,6 +887,7 @@ $('#auth-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.currentTarget;
   const data = Object.fromEntries(new FormData(form));
+  data.rememberMe = $('#auth-remember') ? $('#auth-remember').checked : true;
   const errEl = $('#auth-error');
   errEl.classList.add('hidden');
 

@@ -160,8 +160,8 @@ export function createServer({ store, archiveStore, pipeline, jobs, syncWorker =
 
   app.post('/api/auth/login', async (req, res) => {
     try {
-      const { email, password } = req.body;
-      const data = await signIn(email, password);
+      const { email, password, rememberMe } = req.body;
+      const data = await signIn(email, password, rememberMe !== false);
       if (syncWorker) {
         syncWorker.setupRealtime().catch(() => {});
         syncWorker.sync().catch(() => {});

@@ -1,9 +1,50 @@
 import { createClient } from '@supabase/supabase-js';
+import fs from 'node:fs';
+import path from 'node:path';
 import { logger } from '../utils/logger.js';
 
 let supabaseInstance = null;
 let currentSession = null;
 let currentProfile = null;
+let rememberSession = true;
+
+const SESSION_FILE = path.resolve(process.cwd(), 'data', 'auth_session.json');
+
+const persistentStorage = {
+  getItem: (key) => {
+    try {
+      if (!fs.existsSync(SESSION_FILE)) return null;
+      const data = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
+      if (data._rememberMe === false) return null;
+      return data[key] ?? null;
+    } catch {
+      return null;
+    }
+  },
+  setItem: (key, value) => {
+    try {
+      if (!rememberSession) return;
+      let data = {};
+      if (fs.existsSync(SESSION_FILE)) {
+        try { data = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8')); } catch {}
+      }
+      data[key] = value;
+      data._rememberMe = true;
+      fs.mkdirSync(path.dirname(SESSION_FILE), { recursive: true });
+      fs.writeFileSync(SESSION_FILE, JSON.stringify(data, null, 2), 'utf8');
+    } catch (e) {
+      logger.warn('Erro ao persistir sessão Supabase:', { error: e.message });
+    }
+  },
+  removeItem: (key) => {
+    try {
+      if (!fs.existsSync(SESSION_FILE)) return;
+      const data = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
+      delete data[key];
+      fs.writeFileSync(SESSION_FILE, JSON.stringify(data, null, 2), 'utf8');
+    } catch {}
+  }
+};
 
 export function isSupabaseConfigured() {
   const url = process.env.SUPABASE_URL || '';
@@ -25,7 +66,8 @@ export function getSupabase() {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: false
+      detectSessionInUrl: false,
+      storage: persistentStorage
     },
     realtime: {
       params: {
@@ -162,6 +204,13 @@ export async function getCurrentUser() {
   if (!supabase) return null;
 
   try {
+    if (!currentSession) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        currentSession = session;
+      }
+    }
+
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) return null;
 
@@ -172,7 +221,7 @@ export async function getCurrentUser() {
         .eq('id', user.id)
         .maybeSingle();
       
-      if (!profile || !profile.team_id) {
+      if (!profile) {
         await ensureProfileAndTeam(user);
       } else {
         currentProfile = profile;
@@ -352,7 +401,8 @@ export async function getTeamInfo() {
   }
 }
 
-export async function signIn(email, password) {
+export async function signIn(email, password, rememberMe = true) {
+  rememberSession = Boolean(rememberMe);
   const supabase = getSupabase();
   if (!supabase) throw new Error('Supabase não configurado neste ambiente.');
 
@@ -360,6 +410,11 @@ export async function signIn(email, password) {
   if (error) throw error;
   currentSession = data.session;
   currentProfile = null;
+  if (!rememberMe) {
+    try {
+      if (fs.existsSync(SESSION_FILE)) fs.unlinkSync(SESSION_FILE);
+    } catch {}
+  }
   await ensureProfileAndTeam(data.user);
   return data;
 }
@@ -371,4 +426,7 @@ export async function signOut() {
   }
   currentSession = null;
   currentProfile = null;
+  try {
+    if (fs.existsSync(SESSION_FILE)) fs.unlinkSync(SESSION_FILE);
+  } catch {}
 }
