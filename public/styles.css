@@ -829,6 +829,25 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .mode-card:hover {
   border-color: var(--accent);
 }
+.auth-remember-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 14px 0 !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  color: var(--ink) !important;
+  user-select: none !important;
+}
+
+.auth-remember-row input[type="checkbox"] {
+  accent-color: var(--accent) !important;
+  width: 18px !important;
+  height: 18px !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+}
+
 .mode-card input[type="radio"] {
   accent-color: var(--accent);
   margin-top: 3px;
