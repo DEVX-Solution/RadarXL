@@ -143,6 +143,8 @@ function switchView(viewName) {
   if (viewName === 'team') renderTeamView();
   if (viewName === 'all-leads') renderAllLeadsView();
   if (viewName === 'settings') renderSettingsView();
+  if (viewName === 'audits') renderAuditsView();
+  if (viewName === 'reports') renderReportsView();
   if (viewName === 'favorites') {
     state.onlyFavorites = true;
     renderLeads();
@@ -274,6 +276,302 @@ function renderAllLeadsView() {
   const container = $('#all-leads-container');
   if (!container) return;
   container.innerHTML = `<div class="lead-list">${state.leads.map(leadRow).join('')}</div>`;
+}
+
+function renderAuditsView() {
+  const container = $('#audits-container');
+  if (!container) return;
+
+  const auditedLeads = state.leads.filter((lead) => lead.site);
+  const withScores = auditedLeads.filter((l) => numericScore(l.auditoria?.performance) !== null);
+  const avgPerf = withScores.length
+    ? Math.round(withScores.reduce((acc, l) => acc + numericScore(l.auditoria.performance), 0) / withScores.length)
+    : null;
+  const sslIssues = auditedLeads.filter((l) => l.auditoria?.ssl === false).length;
+  const slowSites = auditedLeads.filter((l) => Number(l.auditoria?.loadTimeMs || 0) > 3000).length;
+  const noSiteCount = state.leads.filter((l) => !l.site).length;
+
+  container.innerHTML = `
+    <!-- KPIS DE AUDITORIA -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <span class="kpi-label">Sites com Website</span>
+        <span class="kpi-value">${auditedLeads.length}</span>
+        <span class="kpi-hint">De um total de ${state.leads.length} empresas</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Performance Média</span>
+        <span class="kpi-value" style="color:${avgPerf !== null && avgPerf >= 70 ? '#4ade80' : avgPerf !== null && avgPerf >= 40 ? '#fde047' : '#f87171'}">${avgPerf !== null ? avgPerf : '--'}</span>
+        <span class="kpi-hint">Pontuação técnica geral</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Sem HTTPS / SSL</span>
+        <span class="kpi-value" style="color:${sslIssues > 0 ? '#f87171' : '#4ade80'}">${sslIssues}</span>
+        <span class="kpi-hint">Oportunidade alta de segurança</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Sem Website Ativo</span>
+        <span class="kpi-value" style="color:#a855f7">${noSiteCount}</span>
+        <span class="kpi-hint">Oportunidade de criação de site</span>
+      </div>
+    </div>
+
+    <!-- TABELA DE AUDITORIAS -->
+    <div class="audits-table-card">
+      <div class="card-header">
+        <div>
+          <h3 style="margin:0 0 4px; font-size:16px; color:var(--ink);">Auditorias de Websites</h3>
+          <p style="margin:0; font-size:12px; color:var(--muted);">Diagnóstico técnico automatizado por empresa encontrada.</p>
+        </div>
+      </div>
+
+      ${auditedLeads.length === 0 ? `
+        <div class="empty-state" style="padding:40px 20px;">
+          <p>Nenhuma empresa com website encontrada nesta visualização. Execute uma nova pesquisa na tela inicial para auditar empresas.</p>
+        </div>
+      ` : `
+        <div style="overflow-x:auto;">
+          <table class="audits-table">
+            <thead>
+              <tr>
+                <th>Empresa</th>
+                <th>Website</th>
+                <th>Performance</th>
+                <th>SEO</th>
+                <th>Segurança SSL</th>
+                <th>Layout Mobile</th>
+                <th>Tempo</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${auditedLeads.map((lead) => {
+                const aud = lead.auditoria || {};
+                const perf = numericScore(aud.performance);
+                const seo = numericScore(aud.seo);
+                const perfClass = perf >= 70 ? 'high' : perf >= 40 ? 'mid' : 'low';
+                const seoClass = seo >= 70 ? 'high' : seo >= 40 ? 'mid' : 'low';
+
+                return `
+                  <tr class="lead-row" data-id="${escapeHtml(lead.id)}">
+                    <td>
+                      <strong>${escapeHtml(lead.empresa)}</strong>
+                      <div style="font-size:11px; color:var(--muted);">${escapeHtml(lead.categoria || '')} · ${escapeHtml(lead.cidade || '')}</div>
+                    </td>
+                    <td>
+                      <a href="${escapeHtml(lead.site)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-light); font-size:12px; text-decoration:none;">
+                        ${escapeHtml(lead.site.replace(/^https?:\/\//i, '').replace(/\/$/, ''))}
+                      </a>
+                    </td>
+                    <td>
+                      <span class="score-tag ${perfClass}">${perf !== null ? perf : '--'}</span>
+                    </td>
+                    <td>
+                      <span class="score-tag ${seoClass}">${seo !== null ? seo : '--'}</span>
+                    </td>
+                    <td>
+                      <span class="badge ${aud.ssl ? 'success' : 'danger'}">${aud.ssl ? 'Válido' : 'Ausente'}</span>
+                    </td>
+                    <td>
+                      <span class="badge ${aud.mobileFriendly ? 'success' : 'warning'}">${aud.mobileFriendly ? 'Otimizado' : 'Incompatível'}</span>
+                    </td>
+                    <td style="color:var(--muted); font-size:12px;">
+                      ${aud.loadTimeMs ? aud.loadTimeMs + 'ms' : '--'}
+                    </td>
+                    <td>
+                      <button class="button ghost" type="button" data-action="view" style="font-size:11px; padding:4px 8px;">Detalhes</button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function renderReportsView() {
+  const container = $('#reports-container');
+  if (!container) return;
+
+  const total = state.leads.length;
+  const hot = state.leads.filter((l) => l.score >= 70);
+  const warm = state.leads.filter((l) => l.score >= 40 && l.score < 70);
+  const cold = state.leads.filter((l) => l.score < 40);
+  const noSite = state.leads.filter((l) => !l.site);
+  const favs = state.leads.filter((l) => l.favorite);
+
+  const catMap = {};
+  state.leads.forEach((l) => {
+    const c = l.categoria || 'Geral';
+    catMap[c] = (catMap[c] || 0) + 1;
+  });
+  const topCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  container.innerHTML = `
+    <!-- RESUMO EXECUTIVO -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <span class="kpi-label">Oportunidades Quentes</span>
+        <span class="kpi-value" style="color:#4ade80;">${hot.length}</span>
+        <span class="kpi-hint">Score acima de 70 (Alta probabilidade)</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Sem Presença Digital</span>
+        <span class="kpi-value" style="color:#a855f7;">${noSite.length}</span>
+        <span class="kpi-hint">Empresas sem website ativo</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Oportunidades Técnicas</span>
+        <span class="kpi-value" style="color:#fde047;">${warm.length}</span>
+        <span class="kpi-hint">Sites com falhas ou performance baixa</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Favoritados para Fechamento</span>
+        <span class="kpi-value" style="color:#38bdf8;">${favs.length}</span>
+        <span class="kpi-hint">Separados pela equipe comercial</span>
+      </div>
+    </div>
+
+    <!-- GRÁFICOS E DISTRIBUIÇÕES -->
+    <div class="reports-charts-row">
+      <!-- CARD: DISTRIBUIÇÃO DE SCORE COMERCIAL -->
+      <div class="report-card">
+        <div class="settings-card-header">
+          <h3>Distribuição Comercial de Leads</h3>
+          <p>Classificação do potencial de fechamento de negócios.</p>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div class="bar-item">
+            <div class="bar-header">
+              <span>Leads Quentes (70 - 100)</span>
+              <strong>${hot.length} (${total ? Math.round((hot.length * 100) / total) : 0}%)</strong>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill green" style="width:${total ? (hot.length * 100) / total : 0}%;"></div>
+            </div>
+          </div>
+
+          <div class="bar-item">
+            <div class="bar-header">
+              <span>Leads Mornos (40 - 69)</span>
+              <strong>${warm.length} (${total ? Math.round((warm.length * 100) / total) : 0}%)</strong>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill yellow" style="width:${total ? (warm.length * 100) / total : 0}%;"></div>
+            </div>
+          </div>
+
+          <div class="bar-item">
+            <div class="bar-header">
+              <span>Leads Frios (0 - 39)</span>
+              <strong>${cold.length} (${total ? Math.round((cold.length * 100) / total) : 0}%)</strong>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill red" style="width:${total ? (cold.length * 100) / total : 0}%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD: PRINCIPAIS NICHOS PROSPECTADOS -->
+      <div class="report-card">
+        <div class="settings-card-header">
+          <h3>Principais Nichos Prospectados</h3>
+          <p>Segmentos com maior volume de dados capturados.</p>
+        </div>
+
+        ${topCats.length === 0 ? `
+          <p style="color:var(--muted); font-size:13px;">Nenhum dado capturado ainda.</p>
+        ` : `
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            ${topCats.map(([cat, count]) => `
+              <div class="bar-item">
+                <div class="bar-header">
+                  <span>${escapeHtml(cat)}</span>
+                  <strong>${count} empresa(s)</strong>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill purple" style="width:${total ? (count * 100) / total : 0}%;"></div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      </div>
+    </div>
+
+    <!-- EXPORTAÇÃO DE RELATÓRIOS -->
+    <div class="report-card">
+      <div class="settings-card-header">
+        <h3>Exportação e Produtividade Comercial</h3>
+        <p>Exporte a base para o seu CRM, equipe de vendas ou planilhas externas.</p>
+      </div>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button class="button primary" type="button" id="btn-export-csv">Exportar Base em CSV</button>
+        <button class="button secondary" type="button" id="btn-export-json">Exportar em JSON</button>
+        <button class="button secondary" type="button" id="btn-copy-summary">Copiar Resumo Comercial</button>
+      </div>
+    </div>
+  `;
+
+  $('#btn-export-csv')?.addEventListener('click', () => {
+    if (state.leads.length === 0) {
+      toast('Nenhum lead disponível para exportar.');
+      return;
+    }
+    const headers = ['Empresa', 'Categoria', 'Cidade', 'Estado', 'Telefone', 'Email', 'Site', 'Instagram', 'Score', 'Status'];
+    const rows = state.leads.map((l) => [
+      `"${(l.empresa || '').replace(/"/g, '""')}"`,
+      `"${(l.categoria || '').replace(/"/g, '""')}"`,
+      `"${(l.cidade || '').replace(/"/g, '""')}"`,
+      `"${(l.estado || '').replace(/"/g, '""')}"`,
+      `"${(l.telefone || '').replace(/"/g, '""')}"`,
+      `"${(l.email || '').replace(/"/g, '""')}"`,
+      `"${(l.site || '').replace(/"/g, '""')}"`,
+      `"${(l.instagram || '').replace(/"/g, '""')}"`,
+      l.score || 0,
+      `"${(l.status || '').replace(/"/g, '""')}"`
+    ]);
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `relatorio-radarxl-${Date.now()}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast('Relatório CSV baixado com sucesso.');
+  });
+
+  $('#btn-export-json')?.addEventListener('click', () => {
+    if (state.leads.length === 0) {
+      toast('Nenhum lead disponível para exportar.');
+      return;
+    }
+    const jsonStr = JSON.stringify(state.leads, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `leads-radarxl-${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast('Arquivo JSON baixado com sucesso.');
+  });
+
+  $('#btn-copy-summary')?.addEventListener('click', () => {
+    const summaryText = `Relatório RadarXL Intelligence:\nTotal de Empresas: ${total}\nOportunidades Quentes (Score 70+): ${hot.length}\nEmpresas Sem Site: ${noSite.length}\nOportunidades Técnicas: ${warm.length}\nFavoritados: ${favs.length}`;
+    navigator.clipboard.writeText(summaryText).then(() => {
+      toast('Resumo copiado para a área de transferência.');
+    }).catch(() => {
+      toast('Não foi possível copiar o resumo.');
+    });
+  });
 }
 
 function renderArchives() {
