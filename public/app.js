@@ -33,6 +33,10 @@ function safeUrl(value = '') {
   } catch { return ''; }
 }
 
+const API_BASE = (window.location.protocol === 'http:' && window.location.port === '3000')
+  ? ''
+  : 'http://127.0.0.1:3000';
+
 window.openInBrowser = async function (url) {
   if (!url) return;
   let targetUrl = String(url).trim();
@@ -40,7 +44,23 @@ window.openInBrowser = async function (url) {
     targetUrl = 'https://' + targetUrl;
   }
 
-  // 1. Tentar via comando Tauri IPC nativo do desktop
+  try {
+    toast(`Abrindo no navegador: ${host(targetUrl)}`);
+  } catch {}
+
+  // 1. Chamar o backend local em 127.0.0.1:3000 que executa o comando de abertura de navegador no Windows
+  try {
+    const res = await fetch(`${API_BASE}/api/system/open-url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: targetUrl })
+    });
+    if (res.ok) return;
+  } catch (err) {
+    console.warn('[RadarXL] open-url via backend falhou:', err);
+  }
+
+  // 2. Tentar via comando Tauri IPC nativo do desktop se disponível
   try {
     if (window.__TAURI__?.core?.invoke) {
       await window.__TAURI__.core.invoke('open_external_url', { url: targetUrl });
@@ -50,24 +70,12 @@ window.openInBrowser = async function (url) {
     console.warn('[RadarXL] invoke open_external_url falhou:', err);
   }
 
-  // 2. Tentar via endpoint HTTP do backend local (/api/system/open-url)
-  try {
-    const res = await fetch('/api/system/open-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: targetUrl })
-    });
-    if (res.ok) return;
-  } catch (err) {
-    console.warn('[RadarXL] /api/system/open-url falhou:', err);
-  }
-
   // 3. Fallback de navegador web
   window.open(targetUrl, '_blank', 'noopener,noreferrer');
 };
 
 document.addEventListener('click', (event) => {
-  const link = event.target.closest('a[href^="http://"], a[href^="https://"], a[target="_blank"]');
+  const link = event.target.closest('a[href^="http://"], a[href^="https://"], a[target="_blank"], a.external-link');
   if (link && link.href) {
     event.preventDefault();
     event.stopPropagation();
@@ -221,7 +229,8 @@ function leadRow(lead) {
   const performance = numericScore(lead.auditoria?.performance);
   const instagramQuality = numericScore(lead.instagramDetails?.qualityScore);
   const siteLink = safeUrl(lead.site);
-  const instagramLink = safeUrl(lead.instagram_url);
+  const rawInsta = lead.instagram_url || (lead.instagram ? `https://instagram.com/${String(lead.instagram).replace(/^@/, '').trim()}` : '');
+  const instagramLink = safeUrl(rawInsta);
   return `
     <article class="lead-row${lead.favorite ? ' favorite' : ''}" data-id="${escapeHtml(lead.id)}">
       <div class="company">
@@ -232,8 +241,8 @@ function leadRow(lead) {
         </span>
       </div>
       <div class="digital-links">
-        ${siteLink ? `<a href="${escapeHtml(siteLink)}" target="_blank" rel="noopener">↗ ${escapeHtml(host(siteLink))}</a>` : '<span class="missing">Sem site ativo</span>'}
-        ${instagramLink ? `<a href="${escapeHtml(instagramLink)}" target="_blank" rel="noopener">◎ ${escapeHtml(lead.instagram)}</a>` : '<span class="missing">Sem Instagram</span>'}
+        ${siteLink ? `<a href="${escapeHtml(siteLink)}" class="external-link" target="_blank" rel="noopener" onclick="window.openInBrowser('${escapeHtml(siteLink)}'); return false;">↗ ${escapeHtml(host(siteLink))}</a>` : '<span class="missing">Sem site ativo</span>'}
+        ${instagramLink ? `<a href="${escapeHtml(instagramLink)}" class="external-link" target="_blank" rel="noopener" onclick="window.openInBrowser('${escapeHtml(instagramLink)}'); return false;">◎ ${escapeHtml(lead.instagram || 'Instagram')}</a>` : '<span class="missing">Sem Instagram</span>'}
       </div>
       <div class="metric"${lead.auditoria?.estimated ? ' title="Nota técnica estimada"' : ''}>
         <span>Site${lead.auditoria?.estimated ? ' ~' : ''}</span>
@@ -1202,7 +1211,8 @@ function detailHtml(lead) {
   const ig = lead.instagramDetails || {};
   const screenshot = safeUrl(lead.screenshot_path);
   const site = safeUrl(lead.site);
-  const instagram = safeUrl(lead.instagram_url);
+  const rawIg = lead.instagram_url || (lead.instagram ? `https://instagram.com/${String(lead.instagram).replace(/^@/, '').trim()}` : '');
+  const instagram = safeUrl(rawIg);
   const map = safeUrl(lead.maps_url || lead.google_maps_url);
   const problemItems = (lead.problemas || []).map((problem) => `<li>${escapeHtml(problem)}</li>`).join('');
   const photo = safeUrl(ig.profilePhotoUrl);

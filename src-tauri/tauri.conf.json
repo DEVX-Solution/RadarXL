@@ -10,6 +10,7 @@
     "frontendDist": "../public"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "RadarXL Intelligence 2.0",
