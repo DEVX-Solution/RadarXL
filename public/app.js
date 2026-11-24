@@ -119,10 +119,6 @@ function toast(message) {
   toast.timer = setTimeout(() => element.classList.remove('visible'), 2800);
 }
 
-const API_BASE = (window.location.protocol === 'http:' && window.location.port === '3000')
-  ? ''
-  : 'http://127.0.0.1:3000';
-
 async function waitForBackend(maxRetries = 35, delayMs = 200) {
   for (let i = 0; i < maxRetries; i++) {
     try {
