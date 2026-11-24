@@ -37,12 +37,23 @@ const API_BASE = (window.location.protocol === 'http:' && window.location.port =
   ? ''
   : 'http://127.0.0.1:3000';
 
+let lastOpenUrl = '';
+let lastOpenTime = 0;
+
 window.openInBrowser = async function (url) {
   if (!url) return;
   let targetUrl = String(url).trim();
   if (!/^https?:\/\//i.test(targetUrl)) {
     targetUrl = 'https://' + targetUrl;
   }
+
+  // Previne clique duplo ou disparo duplo abrindo duas abas identicas
+  const now = Date.now();
+  if (targetUrl === lastOpenUrl && (now - lastOpenTime) < 1500) {
+    return;
+  }
+  lastOpenUrl = targetUrl;
+  lastOpenTime = now;
 
   try {
     toast(`Abrindo no navegador: ${host(targetUrl)}`);
@@ -75,13 +86,16 @@ window.openInBrowser = async function (url) {
 };
 
 document.addEventListener('click', (event) => {
-  const link = event.target.closest('a[href^="http://"], a[href^="https://"], a[target="_blank"], a.external-link');
-  if (link && link.href) {
-    event.preventDefault();
-    event.stopPropagation();
-    window.openInBrowser(link.href);
+  const link = event.target.closest('a.external-link, a[href^="http://"], a[href^="https://"], a[target="_blank"]');
+  if (link) {
+    const href = link.getAttribute('href') || link.href;
+    if (href && href !== '#' && !href.startsWith('javascript:')) {
+      event.preventDefault();
+      event.stopPropagation();
+      window.openInBrowser(href);
+    }
   }
-});
+}, true);
 
 function hasVisibleDigitalPresence(lead) {
   const instagram = String(lead.instagram || '').trim();
@@ -237,8 +251,8 @@ function leadRow(lead) {
         </span>
       </div>
       <div class="digital-links">
-        ${siteLink ? `<a href="${escapeHtml(siteLink)}" class="external-link" target="_blank" rel="noopener" onclick="window.openInBrowser('${escapeHtml(siteLink)}'); return false;">↗ ${escapeHtml(host(siteLink))}</a>` : '<span class="missing">Sem site ativo</span>'}
-        ${instagramLink ? `<a href="${escapeHtml(instagramLink)}" class="external-link" target="_blank" rel="noopener" onclick="window.openInBrowser('${escapeHtml(instagramLink)}'); return false;">◎ ${escapeHtml(lead.instagram || 'Instagram')}</a>` : '<span class="missing">Sem Instagram</span>'}
+        ${siteLink ? `<a href="${escapeHtml(siteLink)}" class="external-link" target="_blank" rel="noopener">↗ ${escapeHtml(host(siteLink))}</a>` : '<span class="missing">Sem site ativo</span>'}
+        ${instagramLink ? `<a href="${escapeHtml(instagramLink)}" class="external-link" target="_blank" rel="noopener">◎ ${escapeHtml(lead.instagram || 'Instagram')}</a>` : '<span class="missing">Sem Instagram</span>'}
       </div>
       <div class="metric"${lead.auditoria?.estimated ? ' title="Nota técnica estimada"' : ''}>
         <span>Site${lead.auditoria?.estimated ? ' ~' : ''}</span>
@@ -408,7 +422,7 @@ function renderAuditsView() {
                       <div style="font-size:11px; color:var(--muted);">${escapeHtml(lead.categoria || '')} · ${escapeHtml(lead.cidade || '')}</div>
                     </td>
                     <td>
-                      <a href="${escapeHtml(lead.site)}" class="external-link" target="_blank" rel="noopener noreferrer" onclick="window.openInBrowser('${escapeHtml(lead.site)}'); return false;" style="color:var(--accent-light); font-size:12px; text-decoration:none;">
+                      <a href="${escapeHtml(lead.site)}" class="external-link" target="_blank" rel="noopener noreferrer" style="color:var(--accent-light); font-size:12px; text-decoration:none;">
                         ↗ ${escapeHtml(lead.site.replace(/^https?:\/\//i, '').replace(/\/$/, ''))}
                       </a>
                     </td>

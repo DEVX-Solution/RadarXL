@@ -1,15 +1,15 @@
 {
-  "version": "2.0.3",
-  "notes": "Atualizacao automatica com correcao de inicializacao, abertura de links no navegador e motor local integrado.",
-  "pub_date": "2026-11-24T04:00:00Z",
+  "version": "2.0.4",
+  "notes": "Atualizacao automatica com correcao de abertura unica de links no navegador, inicializacao destravada e motor local integrado.",
+  "pub_date": "2026-11-24T04:08:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcUtNVGdSalM5djV4cytqR3V5aEhibVBLRU1lRFVNTURpVGtrRXhtbk81MVE0bG9EZE9aREsyRjN3SXA2clpMYXhRRk9oNWNkOXZKU21uamNmOThWWTl0bTJwMjN3YlFNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NDkyODUzCWZpbGU6UmFkYXJYTF8yLjAuM194NjQtc2V0dXAuZXhlCXZlcnNpb246Mi4wLjMKdjBGSHpzcldoN0lMZWpGdytPT1JhMEJKVURRRGx3UHAwWmdmUjdGSCs4ZTJpUXd2bXpvTFN0NXV3YmRtTjdlUE81Z1VoMVJnMGpSTW9VSG55YXVtQkE9PQo=",
-      "url": "https://github.com/DEVX-Solution/RadarXL/releases/download/v2.0.3/RadarXL_2.0.3_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcUtNVGdSalM5djZ0RWpDUjNlSFVUOUVVczBZM0pDcUpKSGs4QlhiSkd3Zkw1ZFpQSjF2N2ZOVWVzb1FSbHVnVEZQRlFESm53RUNwK09jK3IrTVZzbURYV2pkUUZiV0FZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NDkzMjc4CWZpbGU6UmFkYXJYTF8yLjAuNF94NjQtc2V0dXAuZXhlCXZlcnNpb246Mi4wLjQKQ0tmNVhiYmVudUJmS3FIbFNuZGdTUWNwaTB3T2JMcE1lSGc5YWF6QmlLNzQzQ25iYXY2TjhFU0Fpd0EyRWJTaFBpVFEvK09sczdiMzNlNWZnUjB3Q1E9PQo=",
+      "url": "https://github.com/DEVX-Solution/RadarXL/releases/download/v2.0.4/RadarXL_2.0.4_x64-setup.exe"
     },
     "windows-x86_64-nsis": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcUtNVGdSalM5djV4cytqR3V5aEhibVBLRU1lRFVNTURpVGtrRXhtbk81MVE0bG9EZE9aREsyRjN3SXA2clpMYXhRRk9oNWNkOXZKU21uamNmOThWWTl0bTJwMjN3YlFNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NDkyODUzCWZpbGU6UmFkYXJYTF8yLjAuM194NjQtc2V0dXAuZXhlCXZlcnNpb246Mi4wLjMKdjBGSHpzcldoN0lMZWpGdytPT1JhMEJKVURRRGx3UHAwWmdmUjdGSCs4ZTJpUXd2bXpvTFN0NXV3YmRtTjdlUE81Z1VoMVJnMGpSTW9VSG55YXVtQkE9PQo=",
-      "url": "https://github.com/DEVX-Solution/RadarXL/releases/download/v2.0.3/RadarXL_2.0.3_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcUtNVGdSalM5djZ0RWpDUjNlSFVUOUVVczBZM0pDcUpKSGs4QlhiSkd3Zkw1ZFpQSjF2N2ZOVWVzb1FSbHVnVEZQRlFESm53RUNwK09jK3IrTVZzbURYV2pkUUZiV0FZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NDkzMjc4CWZpbGU6UmFkYXJYTF8yLjAuNF94NjQtc2V0dXAuZXhlCXZlcnNpb246Mi4wLjQKQ0tmNVhiYmVudUJmS3FIbFNuZGdTUWNwaTB3T2JMcE1lSGc5YWF6QmlLNzQzQ25iYXY2TjhFU0Fpd0EyRWJTaFBpVFEvK09sczdiMzNlNWZnUjB3Q1E9PQo=",
+      "url": "https://github.com/DEVX-Solution/RadarXL/releases/download/v2.0.4/RadarXL_2.0.4_x64-setup.exe"
     }
   }
 }
