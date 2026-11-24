@@ -26,10 +26,54 @@ function escapeHtml(value = '') {
 function safeUrl(value = '') {
   if (!String(value).trim()) return '';
   try {
-    const url = new URL(value, window.location.origin);
+    const raw = String(value).trim();
+    const withProto = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    const url = new URL(withProto, window.location.origin);
     return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
   } catch { return ''; }
 }
+
+window.openInBrowser = async function (url) {
+  if (!url) return;
+  let targetUrl = String(url).trim();
+  if (!/^https?:\/\//i.test(targetUrl)) {
+    targetUrl = 'https://' + targetUrl;
+  }
+
+  // 1. Tentar via comando Tauri IPC nativo do desktop
+  try {
+    if (window.__TAURI__?.core?.invoke) {
+      await window.__TAURI__.core.invoke('open_external_url', { url: targetUrl });
+      return;
+    }
+  } catch (err) {
+    console.warn('[RadarXL] invoke open_external_url falhou:', err);
+  }
+
+  // 2. Tentar via endpoint HTTP do backend local (/api/system/open-url)
+  try {
+    const res = await fetch('/api/system/open-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: targetUrl })
+    });
+    if (res.ok) return;
+  } catch (err) {
+    console.warn('[RadarXL] /api/system/open-url falhou:', err);
+  }
+
+  // 3. Fallback de navegador web
+  window.open(targetUrl, '_blank', 'noopener,noreferrer');
+};
+
+document.addEventListener('click', (event) => {
+  const link = event.target.closest('a[href^="http://"], a[href^="https://"], a[target="_blank"]');
+  if (link && link.href) {
+    event.preventDefault();
+    event.stopPropagation();
+    window.openInBrowser(link.href);
+  }
+});
 
 function hasVisibleDigitalPresence(lead) {
   const instagram = String(lead.instagram || '').trim();

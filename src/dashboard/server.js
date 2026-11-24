@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'node:path';
+import { exec } from 'node:child_process';
 import { config, publicConfig } from '../config.js';
 import { logger } from '../utils/logger.js';
 import { hasDigitalPresence } from '../utils/lead-eligibility.js';
@@ -282,6 +283,28 @@ export function createServer({ store, archiveStore, pipeline, jobs, syncWorker =
   // Endpoints Principais de Leads
   app.get('/api/health', (_request, response) => response.json({ ok: true, time: new Date().toISOString() }));
   app.get('/api/config', (_request, response) => response.json(publicConfig()));
+
+  app.post('/api/system/open-url', (req, res) => {
+    try {
+      const { url } = req.body || {};
+      if (!url || typeof url !== 'string' || !/^https?:\/\//i.test(url.trim())) {
+        return res.status(400).json({ error: 'URL inválida ou insegura.' });
+      }
+      const cleanUrl = url.trim();
+      const cmd = process.platform === 'win32'
+        ? `start "" "${cleanUrl.replace(/"/g, '')}"`
+        : process.platform === 'darwin'
+          ? `open "${cleanUrl.replace(/"/g, '')}"`
+          : `xdg-open "${cleanUrl.replace(/"/g, '')}"`;
+
+      exec(cmd, (err) => {
+        if (err) logger.warn('Falha ao abrir URL no navegador padrão', { url: cleanUrl, error: err.message });
+      });
+      return res.json({ ok: true, opened: cleanUrl });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  });
 
   app.get('/api/settings', (_req, res) => {
     try {

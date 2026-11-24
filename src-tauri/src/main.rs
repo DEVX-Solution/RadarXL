@@ -79,17 +79,71 @@ fn find_node_executable() -> String {
     "node".to_string()
 }
 
-fn start_backend() -> Option<Child> {
-    let root_dir = find_project_root();
-    let script_path = root_dir.join("src").join("index.js");
+fn resolve_node_and_backend() -> Option<(PathBuf, PathBuf, PathBuf)> {
+    // 1. Tentar diretório onde o executável reside (ambiente de produção / instalado no PC do usuário ou amigo)
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            let candidate_dirs = [
+                exe_dir.join("_up_").join("resources"),
+                exe_dir.join("resources"),
+                exe_dir.to_path_buf(),
+            ];
 
-    if !script_path.exists() {
-        eprintln!("[RadarXL] Script de backend não encontrado em: {:?}", script_path);
-        return None;
+            for cand in &candidate_dirs {
+                let node_path = cand.join("node.exe");
+                let bundle_path = cand.join("bundle.mjs");
+                if node_path.exists() && bundle_path.exists() {
+                    return Some((node_path, bundle_path, exe_dir.to_path_buf()));
+                }
+            }
+
+            for cand in &candidate_dirs {
+                let bundle_path = cand.join("bundle.mjs");
+                if bundle_path.exists() {
+                    let sys_node = PathBuf::from(find_node_executable());
+                    return Some((sys_node, bundle_path, exe_dir.to_path_buf()));
+                }
+            }
+        }
     }
 
-    let node_bin = find_node_executable();
-    println!("[RadarXL] Inicializando backend Node.js em: {:?}", root_dir);
+    // 2. Ambiente de desenvolvimento local (como no PC do desenvolvedor)
+    let root = find_project_root();
+
+    let res_bundle = root.join("resources").join("bundle.mjs");
+    let dist_bundle = root.join("dist").join("bundle.mjs");
+    let src_script = root.join("src").join("index.js");
+
+    let script = if res_bundle.exists() {
+        res_bundle
+    } else if dist_bundle.exists() {
+        dist_bundle
+    } else if src_script.exists() {
+        src_script
+    } else {
+        return None;
+    };
+
+    let res_node = root.join("resources").join("node.exe");
+    let node_bin = if res_node.exists() {
+        res_node
+    } else {
+        PathBuf::from(find_node_executable())
+    };
+
+    Some((node_bin, script, root))
+}
+
+fn start_backend() -> Option<Child> {
+    let (node_bin, script_path, work_dir) = match resolve_node_and_backend() {
+        Some(paths) => paths,
+        None => {
+            eprintln!("[RadarXL] Backend ou Node.js não encontrados!");
+            return None;
+        }
+    };
+
+    println!("[RadarXL] Inicializando backend Node: {:?} com script: {:?} em: {:?}", node_bin, script_path, work_dir);
 
     // Garante que qualquer processo antigo na porta 3000 seja reciclado
     #[cfg(windows)]
@@ -101,8 +155,8 @@ fn start_backend() -> Option<Child> {
     }
 
     let mut cmd = Command::new(&node_bin);
-    cmd.current_dir(&root_dir);
-    cmd.arg("src/index.js");
+    cmd.current_dir(&work_dir);
+    cmd.arg(&script_path);
     cmd.env("HOST", "127.0.0.1");
     cmd.env("PORT", "3000");
 
@@ -135,6 +189,28 @@ fn stop_backend(child_mutex: &Arc<Mutex<Option<Child>>>) {
 #[tauri::command]
 fn get_radarxl_status() -> String {
     "RadarXL 2.0 Engine Online".to_string()
+}
+
+#[tauri::command]
+fn open_external_url(url: String) -> Result<(), String> {
+    let clean = url.trim();
+    if !clean.starts_with("http://") && !clean.starts_with("https://") {
+        return Err("URL inválida".to_string());
+    }
+
+    #[cfg(windows)]
+    {
+        let mut cmd = Command::new("cmd");
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        cmd.args(&["/c", "start", "", clean]);
+        cmd.spawn().map_err(|e| e.to_string())?;
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        Command::new("xdg-open").arg(clean).spawn().map_err(|e| e.to_string())?;
+        Ok(())
+    }
 }
 
 fn main() {
@@ -182,7 +258,7 @@ fn main() {
             Ok(())
         })
         .manage(BackendState { child: child_for_state })
-        .invoke_handler(tauri::generate_handler![get_radarxl_status])
+        .invoke_handler(tauri::generate_handler![get_radarxl_status, open_external_url])
         .on_window_event(move |_window, event| {
             if let WindowEvent::CloseRequested { .. } = event {
                 stop_backend(&child_for_window);

@@ -6,8 +6,8 @@ package-lock.json
 src-tauri/target/
 dist/
 build/
-release/RadarXL.exe
-release/RadarXL-Setup.exe
+resources/
+release/
 
 # Chaves Privadas do Tauri Updater (NUNCA SUBIR CHAVE PRIVADA)
 src-tauri/*.key

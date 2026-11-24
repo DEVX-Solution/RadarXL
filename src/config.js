@@ -1,8 +1,41 @@
 import 'dotenv/config';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+function resolveDataDir() {
+  if (process.env.RADARXL_DATA_DIR) {
+    const custom = process.env.RADARXL_DATA_DIR;
+    try {
+      if (!fs.existsSync(custom)) fs.mkdirSync(custom, { recursive: true });
+      return custom;
+    } catch {}
+  }
+  const localData = path.join(rootDir, 'data');
+  try {
+    if (!fs.existsSync(localData)) {
+      fs.mkdirSync(localData, { recursive: true });
+    }
+    const testFile = path.join(localData, '.write-test');
+    fs.writeFileSync(testFile, 'ok');
+    fs.unlinkSync(testFile);
+    return localData;
+  } catch {
+    const appData = process.env.APPDATA || process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Roaming');
+    const userRadarDir = path.join(appData, 'RadarXL');
+    try {
+      if (!fs.existsSync(userRadarDir)) {
+        fs.mkdirSync(userRadarDir, { recursive: true });
+      }
+    } catch {}
+    return userRadarDir;
+  }
+}
+
+const dataDir = resolveDataDir();
 
 function numberFromEnv(name, fallback, min = 0) {
   const value = Number(process.env[name]);
@@ -14,11 +47,11 @@ export const config = {
   host: process.env.HOST || '127.0.0.1',
   port: numberFromEnv('PORT', 3000, 1),
   logLevel: process.env.LOG_LEVEL || 'info',
-  dataDir: path.join(rootDir, 'data'),
-  screenshotDir: path.join(rootDir, 'data', 'screenshots'),
-  leadsFile: path.join(rootDir, 'data', 'leads.json'),
-  archivesFile: path.join(rootDir, 'data', 'archives.json'),
-  logFile: path.join(rootDir, 'data', 'app.log'),
+  dataDir,
+  screenshotDir: path.join(dataDir, 'screenshots'),
+  leadsFile: path.join(dataDir, 'leads.json'),
+  archivesFile: path.join(dataDir, 'archives.json'),
+  logFile: path.join(dataDir, 'app.log'),
   googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || '',
   googleSearchApiKey: process.env.GOOGLE_SEARCH_API_KEY || '',
   googleSearchCx: process.env.GOOGLE_SEARCH_CX || '',
