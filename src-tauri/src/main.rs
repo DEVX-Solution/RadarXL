@@ -145,15 +145,6 @@ fn start_backend() -> Option<Child> {
 
     println!("[RadarXL] Inicializando backend Node: {:?} com script: {:?} em: {:?}", node_bin, script_path, work_dir);
 
-    // Garante que qualquer processo antigo na porta 3000 seja reciclado
-    #[cfg(windows)]
-    {
-        let mut kill_cmd = Command::new("powershell");
-        kill_cmd.creation_flags(CREATE_NO_WINDOW);
-        kill_cmd.args(&["-NoProfile", "-Command", "Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"]);
-        let _ = kill_cmd.output();
-    }
-
     let mut cmd = Command::new(&node_bin);
     cmd.current_dir(&work_dir);
     cmd.arg(&script_path);
