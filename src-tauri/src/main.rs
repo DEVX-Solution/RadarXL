@@ -209,10 +209,11 @@ fn main() {
     let child_for_state = Arc::clone(&backend_child);
     let child_for_window = Arc::clone(&backend_child);
     let child_for_exit = Arc::clone(&backend_child);
+    let child_for_updater = Arc::clone(&backend_child);
 
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .setup(|app| {
+        .setup(move |app| {
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 use tauri_plugin_updater::UpdaterExt;
@@ -233,7 +234,11 @@ fn main() {
                             }).await;
 
                             match install_res {
-                                Ok(()) => println!("[RadarXL Updater] Atualização instalada com sucesso! Reinicie o aplicativo."),
+                                Ok(()) => {
+                                    println!("[RadarXL Updater] Atualização instalada com sucesso! Reiniciando aplicativo...");
+                                    stop_backend(&child_for_updater);
+                                    handle.restart();
+                                }
                                 Err(e) => eprintln!("[RadarXL Updater] Erro ao instalar atualização: {}", e),
                             }
                         }
