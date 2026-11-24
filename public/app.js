@@ -406,14 +406,14 @@ function renderAuditsView() {
                 const seoClass = seo >= 70 ? 'high' : seo >= 40 ? 'mid' : 'low';
 
                 return `
-                  <tr class="lead-row" data-id="${escapeHtml(lead.id)}">
+                  <tr class="audit-row" data-id="${escapeHtml(lead.id)}">
                     <td>
                       <strong>${escapeHtml(lead.empresa)}</strong>
                       <div style="font-size:11px; color:var(--muted);">${escapeHtml(lead.categoria || '')} · ${escapeHtml(lead.cidade || '')}</div>
                     </td>
                     <td>
-                      <a href="${escapeHtml(lead.site)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-light); font-size:12px; text-decoration:none;">
-                        ${escapeHtml(lead.site.replace(/^https?:\/\//i, '').replace(/\/$/, ''))}
+                      <a href="${escapeHtml(lead.site)}" class="external-link" target="_blank" rel="noopener noreferrer" onclick="window.openInBrowser('${escapeHtml(lead.site)}'); return false;" style="color:var(--accent-light); font-size:12px; text-decoration:none;">
+                        ↗ ${escapeHtml(lead.site.replace(/^https?:\/\//i, '').replace(/\/$/, ''))}
                       </a>
                     </td>
                     <td>
@@ -431,8 +431,8 @@ function renderAuditsView() {
                     <td style="color:var(--muted); font-size:12px;">
                       ${aud.loadTimeMs ? aud.loadTimeMs + 'ms' : '--'}
                     </td>
-                    <td>
-                      <button class="button ghost" type="button" data-action="view" style="font-size:11px; padding:4px 8px;">Detalhes</button>
+                    <td style="text-align:right;">
+                      <button class="button ghost" type="button" data-action="view" style="font-size:11px; padding:4px 10px;">Detalhes</button>
                     </td>
                   </tr>
                 `;
@@ -1404,7 +1404,7 @@ document.addEventListener('click', async (event) => {
       if (action === 'toggle-favorite') await toggleFavorite(actionElement.dataset.id);
       if (action === 'archive-current') await archiveCurrentLeads();
       if (action === 'restore-archive') await restoreArchive(actionElement.dataset.id);
-      if (action === 'view') openLead(actionElement.closest('.lead-row').dataset.id);
+      if (action === 'view') openLead(actionElement.closest('[data-id]').dataset.id);
       if (action === 'copy-message') await copyMessage(actionElement.dataset.id);
       if (action === 'reanalyze') {
         const job = await api(`/api/leads/${actionElement.dataset.id}/reanalyze`, {

@@ -1436,6 +1436,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .audits-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto;
 }
 
 .audits-table th {
@@ -1443,15 +1444,26 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   font-size: 11px;
   color: var(--muted);
   text-transform: uppercase;
-  padding: 10px 14px;
+  letter-spacing: 0.5px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--surface-border);
+  white-space: nowrap;
 }
 
 .audits-table td {
-  padding: 14px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--surface-border);
   font-size: 13px;
   color: var(--ink);
+  vertical-align: middle;
+}
+
+.audit-row {
+  transition: background 0.15s ease;
+}
+
+.audit-row:hover {
+  background: rgba(168, 85, 247, 0.05);
 }
 
 .score-tag {
@@ -1460,6 +1472,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
+  text-align: center;
+  min-width: 32px;
 }
 
 .score-tag.high {
